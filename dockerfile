@@ -1,27 +1,25 @@
-# Stage 1: Build app
 FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Cài dependencies
-COPY package*.json ./
-RUN npm install -g pnpm && pnpm install
+# Cài git
+RUN apk add --no-cache git
 
-# Copy source và build
-COPY . .
-RUN pnpm build
+# Clone code từ repo gốc
+RUN git clone https://github.com/xp4u1/memoria.git .
 
-# Stage 2: Run app
+# Cài dependencies và build
+RUN npm install -g pnpm && pnpm install && pnpm build
+
+# Stage chạy app
 FROM node:20-alpine
 
 WORKDIR /app
 
-# Copy kết quả build từ stage 1
 COPY --from=builder /app/build ./build
 COPY --from=builder /app/package*.json ./
 RUN npm install -g pnpm && pnpm install --prod
 
-# Đổi port sang 5173
 EXPOSE 5173
 ENV PORT=5173
 
