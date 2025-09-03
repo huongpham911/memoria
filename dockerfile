@@ -11,10 +11,11 @@ RUN npm install -g pnpm && pnpm install && pnpm build
 # Stage 2: Serve with nginx
 FROM nginx:alpine
 
-# Copy build output (dist/) sang nginx
+# Copy build output
 COPY --from=builder /app/dist /usr/share/nginx/html
 
-# Expose port 80 (nginx mặc định)
-EXPOSE 80
+# Copy custom nginx config
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 
+EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
