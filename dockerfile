@@ -1,26 +1,20 @@
+# Stage 1: Build app
 FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Cài git
 RUN apk add --no-cache git
-
-# Clone code từ repo gốc
 RUN git clone https://github.com/xp4u1/memoria.git .
 
-# Cài dependencies và build
 RUN npm install -g pnpm && pnpm install && pnpm build
 
-# Stage chạy app
-FROM node:20-alpine
+# Stage 2: Serve with nginx
+FROM nginx:alpine
 
-WORKDIR /app
+# Copy build output (dist/) sang nginx
+COPY --from=builder /app/dist /usr/share/nginx/html
 
-COPY --from=builder /app/build ./build
-COPY --from=builder /app/package*.json ./
-RUN npm install -g pnpm && pnpm install --prod
+# Expose port 80 (nginx mặc định)
+EXPOSE 80
 
-EXPOSE 5173
-ENV PORT=5173
-
-CMD ["node", "build/index.js"]
+CMD ["nginx", "-g", "daemon off;"]
